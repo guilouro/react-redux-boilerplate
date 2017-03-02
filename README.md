@@ -1,4 +1,5 @@
-# README
+**Este repositório foi movido para [Lyef Redux Boilerplate](https://github.com/lyef/lyef-redux-boilerplate)**
+
 
 ## Instalação
 
