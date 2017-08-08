@@ -11,16 +11,18 @@ const config = {
     entry: [
         'react-hot-loader/patch',
         'webpack-dev-server/client?http://localhost:8000/#/',
-        ...baseConfig.entry
+        ...baseConfig.entry,
     ],
 
-    debug: true,
     devtool: '#inline-source-map',
 
     plugins: [
         ...baseConfig.plugins,
         new webpack.HotModuleReplacementPlugin(),
         new DashboardPlugin(dashboard.setData),
+        new webpack.LoaderOptionsPlugin({
+            debug: true,
+        }),
     ],
 
     devServer: {
@@ -28,7 +30,6 @@ const config = {
         hot: true,
         port: '8000',
         inline: true,
-        progress: true,
         historyApiFallback: true,
     }
 }

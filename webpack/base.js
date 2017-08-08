@@ -2,6 +2,10 @@ import webpack from 'webpack';
 import path from 'path';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import ScriptExtHtmlWebpackPlugin from 'script-ext-html-webpack-plugin';
+
+process.traceDeprecation = true;
+process.noDeprecation = true;
 
 const rootPath = path.join(__dirname, '../', 'src');
 
@@ -12,7 +16,8 @@ const config = {
 
     output: {
         path: path.join(__dirname, '../', 'dist'),
-        filename: 'js/[name].js',
+        filename: 'js/[name]_[hash:8].js',
+        chunkFilename: 'js/[name]_[hash:8].js',
         publicPath: '/',
     },
 
@@ -25,17 +30,32 @@ const config = {
             services: `${rootPath}/services`,
             views: `${rootPath}/views`,
         },
-        extensions: ['', '.js', '.jsx', '.styl', '.css']
+        extensions: ['.js', '.jsx', '.styl', '.css'],
     },
 
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.styl$/,
-                loader: ExtractTextPlugin.extract(
-                    'style-loader',
-                    ['css-loader', 'postcss-loader', 'stylus-loader']
-                ),
+                loader: ExtractTextPlugin.extract({
+                    fallback: 'style-loader',
+                    use: [{
+                        loader: 'css-loader',
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            plugins: () => [
+                                require('autoprefixer'),
+                                require('postcss-discard-duplicates'),
+                                require('postcss-discard-unused')(),
+                            ],
+                        },
+                    },
+                    {
+                        loader: 'stylus-loader',
+                    }],
+                }),
             },
 
             {
@@ -59,20 +79,21 @@ const config = {
         ],
     },
 
-    postcss: () => {
-        return [
-            require('autoprefixer'),
-            require('postcss-discard-duplicates'),
-            require('postcss-discard-unused')(),
-        ];
-    },
-
-
     plugins: [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            minChunks: ({ resource }) => /node_modules/.test(resource),
+            filename: 'js/[name].[hash:8].js',
+        }),
         new HtmlWebpackPlugin({
             template: './index.html',
         }),
-        new ExtractTextPlugin('css/style.css'),
+        new ScriptExtHtmlWebpackPlugin({
+            defaultAttribute: 'defer',
+        }),
+        new ExtractTextPlugin({
+            filename: 'css/[name]_[contenthash:8].css',
+        }),
     ],
 };
 
